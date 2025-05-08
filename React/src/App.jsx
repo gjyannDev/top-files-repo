@@ -1,40 +1,45 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import ChatRoom from './ChatRoom';
+import {
+  createEncryptedConnection,
+  createUnencryptedConnection,
+} from './chat';
 
 export default function App() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [canMove, setCanMove] = useState(true);
+  const [roomId, setRoomId] = useState('general');
+  const [isEncrypted, setIsEncrypted] = useState(false);
 
-  useEffect(() => {
-    function handleMove(e) {
-      !canMove ? setPosition({ x: e.clientX, y: e.clientY }) : position;
-    }
-    window.addEventListener('pointermove', handleMove);
-    return () => window.removeEventListener('pointermove', handleMove);
-  }, [canMove, position]);
-
-
+  console.log(isEncrypted)
   return (
     <>
       <label>
-        <input type="checkbox"
-          checked={canMove}
-          onChange={e => setCanMove(e.target.checked)} 
+        Choose the chat room:{' '}
+        <select
+          value={roomId}
+          onChange={e => setRoomId(e.target.value)}
+        >
+          <option value="general">general</option>
+          <option value="travel">travel</option>
+          <option value="music">music</option>
+        </select>
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={isEncrypted}
+          onChange={e => setIsEncrypted(e.target.checked)}
         />
-        The dot is allowed to move
+        Enable encryption
       </label>
       <hr />
-      <div style={{
-        position: 'absolute',
-        backgroundColor: 'pink',
-        borderRadius: '50%',
-        opacity: 0.6,
-        transform: `translate(${position.x}px, ${position.y}px)`,
-        pointerEvents: 'none',
-        left: -20,
-        top: -20,
-        width: 40,
-        height: 40,
-      }} />
+      <ChatRoom
+        roomId={roomId}
+        createConnection={isEncrypted ?
+          createEncryptedConnection :
+          createUnencryptedConnection
+        }
+        // isEncrypted={isEncrypted}
+      />
     </>
   );
 }

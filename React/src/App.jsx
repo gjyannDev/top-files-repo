@@ -1,45 +1,51 @@
-import { useState } from 'react';
-import ChatRoom from './ChatRoom';
-import {
-  createEncryptedConnection,
-  createUnencryptedConnection,
-} from './chat';
+import { useState, useEffect } from 'react';
+import { fetchData } from './api';
 
-export default function App() {
-  const [roomId, setRoomId] = useState('general');
-  const [isEncrypted, setIsEncrypted] = useState(false);
+export default function Page() {
+  const [planetList, setPlanetList] = useState([])
+  const [planetId, setPlanetId] = useState('');
 
-  console.log(isEncrypted)
+  const [placeList, setPlaceList] = useState([]);
+  const [placeId, setPlaceId] = useState('');
+
+  useEffect(() => {
+    let ignore = false;
+    fetchData('/planets').then(result => {
+      if (!ignore) {
+        console.log('Fetched a list of planets.');
+        setPlanetList(result);
+        setPlanetId(result[0].id); // Select the first planet
+      }
+    });
+    return () => {
+      ignore = true;
+    }
+  }, []);
+
   return (
     <>
       <label>
-        Choose the chat room:{' '}
-        <select
-          value={roomId}
-          onChange={e => setRoomId(e.target.value)}
-        >
-          <option value="general">general</option>
-          <option value="travel">travel</option>
-          <option value="music">music</option>
+        Pick a planet:{' '}
+        <select value={planetId} onChange={e => {
+          setPlanetId(e.target.value);
+        }}>
+          {planetList.map(planet =>
+            <option key={planet.id} value={planet.id}>{planet.name}</option>
+          )}
         </select>
       </label>
       <label>
-        <input
-          type="checkbox"
-          checked={isEncrypted}
-          onChange={e => setIsEncrypted(e.target.checked)}
-        />
-        Enable encryption
+        Pick a place:{' '}
+        <select value={placeId} onChange={e => {
+          setPlaceId(e.target.value);
+        }}>
+          {placeList.map(place =>
+            <option key={place.id} value={place.id}>{place.name}</option>
+          )}
+        </select>
       </label>
       <hr />
-      <ChatRoom
-        roomId={roomId}
-        createConnection={isEncrypted ?
-          createEncryptedConnection :
-          createUnencryptedConnection
-        }
-        // isEncrypted={isEncrypted}
-      />
+      <p>You are going to: {placeId || '???'} on {planetId || '???'} </p>
     </>
   );
 }
